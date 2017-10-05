@@ -20,4 +20,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('/pengumuman', 'PengumumanController@getPengumuman');
 Route::get('/pengumuman/{id}', 'PengumumanController@getDetailPengumuman');
 Route::post('/pengumuman/tambah', 'PengumumanController@tambahPengumuman');
+
 Route::post('/kategori/tambah', 'KategoriController@tambahKategori');
+
+Route::post('/materi/tambah', 'MateriController@tambahMateri');
