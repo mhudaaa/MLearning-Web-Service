@@ -14,5 +14,7 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/file', 'FileController@getFile');
 // Route::get('/pengumuman', 'PengumumanController@getPengumuman');
 // Route::get('/pengumuman/{id}', 'PengumumanController@getDetailPengumuman');

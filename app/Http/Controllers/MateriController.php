@@ -12,13 +12,12 @@ use App\Model\RecentActivity;
 use App\Model\Url;
 
 class MateriController extends Controller{
-	
+
 	public function tambahMateri(Request $request){
-		
 		// Insert Course Module Data
 	    $courseModule = new CourseModule();
         $courseModuleData[] = [
-            'course' => 3, // ---COURSE ID
+            'course' => $request->courseid, // ---COURSE ID
             'module' => 20,
             'instance' => 0,
             'visible' => 1,
@@ -39,7 +38,7 @@ class MateriController extends Controller{
 
         // Update Course Cacherev
 	    $course = new Course();
-        $course->where('id', 3)->update(['cacherev' => time()]); // ---COURSE ID
+        $course->where('id', $request->courseid)->update(['cacherev' => time()]); // ---COURSE ID
 
         // Insert Course URL Data
 	    $courseUrl = new Url();
@@ -47,7 +46,7 @@ class MateriController extends Controller{
         	'name' => $request->nama,
         	'externalurl' => $request->url,
         	'display' => 0,
-        	'course' => 3, // ---COURSE ID
+        	'course' => $request->courseid, // ---COURSE ID
         	'intro' => $request->deskripsi,
         	'introformat' => 1,
         	'parameters' => 'a:0:{}',
@@ -86,26 +85,27 @@ class MateriController extends Controller{
        	]);
 
        	// Update Course Section Sequence 
-	    $courseSection = Kategori::where('id', 9);
+	    $courseSection = Kategori::where('id', $request->sectionid);
        	$courseSectionRecent = $courseSection->select('sequence')->pluck('sequence')[0]; // ---COURSE SECTION ID
        	$courseSectionSequence = $courseSectionRecent.",".$courseModuleLastId;
        	$courseSection->update(['sequence' => $courseSectionSequence]); 
 
        	// Update Course Module
-       	$courseModule->where('id', $courseModuleLastId)->update(['section' => 9]); // ---COURSE SECTION ID
+       	$courseModule->where('id', $courseModuleLastId)->update(['section' => $request->sectionid]); // ---COURSE SECTION ID
 
        	// Update Course Cacherev
-        $course->where('id', 3)->update(['cacherev' => time()]); // ---COURSE ID
+        $course->where('id', $request->courseid)->update(['cacherev' => time()]); // ---COURSE ID
 
         // Insert RecentActivity
 		$recentActivity = new RecentActivity();
         $recentActivityData [] = [
         	'action' => 0,
         	'timecreated' => time(),
-        	'courseid' => 3, // ---COURSE ID
+        	'courseid' => $request->courseid, // ---COURSE ID
         	'cmid' => $courseModuleLastId,
-        	'userid' => 2, // ---USER ID
+        	'userid' => $request->userid, // ---USER ID
         ];
+        $recentActivity->insert($recentActivityData);
 
         // Insert Log
 	    $log = new Log();
@@ -121,8 +121,8 @@ class MateriController extends Controller{
             'contextid' => $contextLastId,
             'contextlevel' => 70,
             'contextinstanceid' => $contextLastId,
-            'userid' => 2, // ---USER ID
-            'courseid' => 3,
+            'userid' => $request->userid, // ---USER ID
+            'courseid' => $request->courseid,
             'relateduserid' => NULL,
             'anonymous' => 0,
             'other' => 'a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";i:'.$courseModuleMaxInstance.';s:4:"name";s:'.strlen($request->nama).':"'.$request->nama.'";}',
