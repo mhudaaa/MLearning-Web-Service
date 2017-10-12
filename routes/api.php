@@ -17,8 +17,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/pengumuman', 'PengumumanController@getPengumuman');
-Route::get('/pengumuman/{id}', 'PengumumanController@getDetailPengumuman');
+Route::get('/pengumuman/{matkul}', 'PengumumanController@getPengumuman');
+Route::get('/pengumuman/detail/{id}', 'PengumumanController@getDetailPengumuman');
 Route::post('/pengumuman/tambah', 'PengumumanController@tambahPengumuman');
 
 Route::post('/kategori/tambah', 'KategoriController@tambahKategori');

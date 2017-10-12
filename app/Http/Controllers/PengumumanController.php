@@ -16,9 +16,10 @@ class PengumumanController extends Controller{
         $pengumuman->save();
     }
 
-    public function getPengumuman(){
+    public function getPengumuman($matkul){
+        $idMatkul = explode("-", $matkul);
         $pengumuman = new Pengumuman();
-    	$pengumuman = $pengumuman::all();
+    	$pengumuman = $pengumuman::whereIn('matkul', $idMatkul)->get();
         return response()->json($pengumuman);
     }
 
