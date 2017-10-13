@@ -79,7 +79,7 @@
 
             <div class="content">
                 <div class="title m-b-md">
-                    UNEJ Mobile Learning
+                    Mobile Learning UNEJ
                 </div>
 
                 <div class="links">
