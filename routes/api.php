@@ -23,6 +23,7 @@ Route::post('/pengumuman/tambah', 'PengumumanController@tambahPengumuman');
 
 Route::post('/kategori/tambah', 'KategoriController@tambahKategori');
 Route::post('/materi/tambah', 'MateriController@tambahMateri');
+Route::post('/materi/tambahDokumen', 'MateriController@tambahDokumen');
 
 // Auth
 Route::post('/user/check', 'AuthController@authCheck');
