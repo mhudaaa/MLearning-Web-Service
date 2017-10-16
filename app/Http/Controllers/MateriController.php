@@ -137,7 +137,7 @@ class MateriController extends Controller{
         $log->insert($logData);
 	}
 
-   public function tambahDokumen(Request $request){
+   public function tambahDokumen(){
 
         $temp_name = $_FILES['file']['tmp_name'];
         $real_name = $_FILES['file']['name'];
@@ -148,12 +148,19 @@ class MateriController extends Controller{
         $target_file = $target_dir . basename($real_name);
         $ext = pathinfo($target_file, PATHINFO_EXTENSION);
 
+        // var_dump($_POST);
+        $userid = $_POST['info'][0];
+        $courseid = $_POST['info'][1];
+        $coursesectionid = $_POST['info'][2];
+        $materi = $_POST['info'][3];
+        $deskripsi = $_POST['info'][4];
+
         if ($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'zip' || $ext == 'doc' || $ext == 'docx' || $ext == 'pdf') {
             if (move_uploaded_file($temp_name, $target_file)) {
                 $contenthash = sha1_file($target_dir. "/" .$real_name);
                 $firstdir = substr($contenthash, 0, 2);
                 $scnddir = substr($contenthash, 2, 2);
-                // echo $contenthash;                
+                echo $contenthash;                
 
                 // Make dir
                 if (!file_exists($filedir . $firstdir)) {
@@ -165,6 +172,7 @@ class MateriController extends Controller{
                 } 
 
                 rename($target_file, $filedir.$firstdir.'/'.$scnddir.'/'.$contenthash);
+                echo "File uploaded";
                 
             } else {
                 echo "Sorry, there was an error uploading your file.";
@@ -177,7 +185,7 @@ class MateriController extends Controller{
         // Insert course module
         $courseModule = new CourseModule();
         $courseModuleData [] = [
-           'course' => $request->courseid,
+           'course' => $courseid,
            'module' => '17',
            'instance' => '0',
            'visible' => '1',
@@ -198,17 +206,17 @@ class MateriController extends Controller{
 
         // Update Course Cacherev
         $course = new Course();
-        $course->where('id', $request->courseid)->update(['cacherev' => time()]); // ---COURSE ID
+        $course->where('id', $courseid)->update(['cacherev' => time()]); // ---COURSE ID
 
         // Insert mdl resource
         $resource = new Resource();
         $resourceData [] = [
-           'name' => $request->name,
+           'name' => $materi,
            'display' => '0',
            'filterfiles' => '0',
            'course' => '2',
            'revision' => '1',
-           'intro' => $request->deskripsi,
+           'intro' => $deskripsi,
            'introformat' => '1',
            'timemodified' => time(),
            'displayoptions' => 'a:1:{s:10:"printintro";i:1;}'
@@ -252,25 +260,26 @@ class MateriController extends Controller{
         $file = new Files();
 
         // get file last id
-        $fileLastRow = $file->orderBy('id', 'desc')->first();
-        $fileLastId = $fileLastRow['id'];
-        $itemid = $fileLastId + 1;
+        // $fileLastRow = $file->orderBy('id', 'desc')->first();
+        // $fileLastId = $fileLastRow['id'];
+        // $itemid = $fileLastId + 1;
+
 
         $fileData [] = [
            'contenthash' => $contenthash,
-           'pathnamehash' => sha1('/'.$contextLastId.'/mod_resource/content/'.$itemid.'/'.$_FILES['file']['name']),
+           'pathnamehash' => sha1('/'.$contextLastId.'/mod_resource/content/0/'.$_FILES['file']['name']),
            'contextid' => $contextLastId,
            'component' => 'mod_resource',
            'filearea' => 'content',
-           'itemid' => '0',
+           'itemid' => 0,
            'filepath' => '/',
            'filename' => $_FILES['file']['name'],
-           'userid' => $request->userid,
+           'userid' => $userid,
            'filesize' => $_FILES['file']['size'],
            'mimetype' => $_FILES['file']['type'],
            'status' => '0',
            'source' => $_FILES['file']['name'],
-           'author' => $request->fullname,
+           'author' => 'Taylor Swift',
            'license' => 'allrightsreserved',
            'timecreated' => time(),
            'timemodified' => time(),
@@ -292,7 +301,7 @@ class MateriController extends Controller{
            'timecreated' => time(),
            'timemodified' => time(),
            'mimetype' => NULL,
-           'userid' => $request->userid,
+           'userid' => $userid,
            'pathnamehash' => sha1('/'.$contextLastId.'/mod_resource/content/0/.'),
            'status' => '0',
            'source' => NULL,
@@ -305,30 +314,30 @@ class MateriController extends Controller{
 
         // Update course module
         // $courseModule->where('id', $courseModuleLastId)->update(['instance' => $resourceLastId]);
-        $courseModuleDoc = $courseModule->where('module', 17);  // 20 = Module URL
+        $courseModuleDoc = $courseModule->where('module', 17);  // 17 = Resource
         $courseModuleMaxInstance = $courseModuleDoc->max('instance') + 1;
         $courseModule->where('id', $courseModuleLastId)->update(['instance' => $courseModuleMaxInstance]); 
 
         // Update Course Section Sequence 
-        $courseSection = Kategori::where('id', $request->sectionid);
+        $courseSection = Kategori::where('id', $coursesectionid);
         $courseSectionRecent = $courseSection->select('sequence')->pluck('sequence')[0]; // ---COURSE SECTION ID
         $courseSectionSequence = $courseSectionRecent.",".$courseModuleLastId;
         $courseSection->update(['sequence' => $courseSectionSequence]); 
 
         // Update course module
-        $courseModule->where('id', $courseModuleLastId)->update(['section' => $request->sectionid]); // ---COURSE SECTION ID
+        $courseModule->where('id', $courseModuleLastId)->update(['section' => $coursesectionid]); // ---COURSE SECTION ID
 
         // Update cacherev
-        $course->where('id', $request->courseid)->update(['cacherev' => time()]);
+        $course->where('id', $courseid)->update(['cacherev' => time()]);
 
         // Insert block recent activity
         $recentActivity = new RecentActivity();
         $recentActivityData [] = [
            'action' => '0',
            'timecreated' => time(),
-           'courseid' => $request->courseid,
+           'courseid' => $courseid,
            'cmid' => $courseModuleLastId,
-           'userid' => $request->userid,
+           'userid' => $userid,
         ];
         $recentActivity->insert($recentActivityData);
 
@@ -346,16 +355,17 @@ class MateriController extends Controller{
           'contextid' => $contextLastId,
           'contextlevel' => '70',
           'contextinstanceid' => $courseModuleLastId,
-          'userid' => $request->userid,
-          'courseid' => $request->courseid,
+          'userid' => $userid,
+          'courseid' => $courseid,
           'relateduserid' => NULL,
           'anonymous' => '0',
-          'other' => 'a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";i:'.$courseModuleMaxInstance.';s:4:"name";s:'.strlen($request->nama).':"'.$request->nama.'";}',
+          'other' => 'a:3:{s:10:"modulename";s:8:"resource";s:10:"instanceid";i:'.$courseModuleMaxInstance.';s:4:"name";s:'.strlen($materi).':"'.$materi.'";}',
           'timecreated' => time(),
           'origin' => 'web',
           'ip' => '0:0:0:0:0:0:0:1',
           'realuserid' => NULL,
         ];
+        $log->insert($logData);
     }
 
     // public function tambahFile(Request $request){
