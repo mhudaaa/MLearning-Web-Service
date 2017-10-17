@@ -154,6 +154,7 @@ class MateriController extends Controller{
         $coursesectionid = $_POST['info'][2];
         $materi = $_POST['info'][3];
         $deskripsi = $_POST['info'][4];
+        $author = $_POST['info'][5];
 
         if ($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'zip' || $ext == 'doc' || $ext == 'docx' || $ext == 'pdf') {
             if (move_uploaded_file($temp_name, $target_file)) {
@@ -172,7 +173,7 @@ class MateriController extends Controller{
                 } 
 
                 rename($target_file, $filedir.$firstdir.'/'.$scnddir.'/'.$contenthash);
-                echo "File uploaded";
+                echo "<br>File uploaded";
                 
             } else {
                 echo "Sorry, there was an error uploading your file.";
@@ -279,7 +280,7 @@ class MateriController extends Controller{
            'mimetype' => $_FILES['file']['type'],
            'status' => '0',
            'source' => $_FILES['file']['name'],
-           'author' => 'Taylor Swift',
+           'author' => $author,
            'license' => 'allrightsreserved',
            'timecreated' => time(),
            'timemodified' => time(),
@@ -329,6 +330,7 @@ class MateriController extends Controller{
 
         // Update cacherev
         $course->where('id', $courseid)->update(['cacherev' => time()]);
+        $course->where('id', $courseid)->update(['cacherev' => time()]);
 
         // Insert block recent activity
         $recentActivity = new RecentActivity();
@@ -367,6 +369,7 @@ class MateriController extends Controller{
         ];
         $log->insert($logData);
     }
+
 
     // public function tambahFile(Request $request){
 
