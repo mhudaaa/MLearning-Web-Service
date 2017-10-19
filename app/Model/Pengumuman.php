@@ -10,6 +10,6 @@ class Pengumuman extends Model{
     protected $primaryKey = 'id_pengumuman';
     public $timestamps = false;
 	protected $fillable = [
-		'matkul', 'judul_pengumuman', 'isi_pengumuman', 'tgl_pengumuman', 'dosen', 'tanggal'
+		'courseid', 'title', 'description', 'tgl_pengumuman', 'teacher'
 	];
 }

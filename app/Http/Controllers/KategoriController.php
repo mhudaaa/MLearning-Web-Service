@@ -17,12 +17,12 @@ class KategoriController extends Controller{
 
         // Insert Kategori Data 
         $kategoriData[] = [
-            'course' => $request->course,
+            'course' => $request->courseid,
             'section' => $lastsection,
             'summary' => "",
             'summaryformat' => 1,
             'sequence' => "",
-            'name' => $request->nama,
+            'name' => $request->title,
             'visible' => 1,
             'availability' => NULL,
         ];
@@ -49,7 +49,7 @@ class KategoriController extends Controller{
             'contextlevel' => 50,
             'contextinstanceid' => 2,
             'userid' => 2,
-            'courseid' => $request->course,
+            'courseid' => $request->courseid,
             'relateduserid' => NULL,
             'anonymous' => 0,
             'other' => 'a:1:{s:10:"sectionnum";i:'.$lastsection.';}',
@@ -63,7 +63,7 @@ class KategoriController extends Controller{
 
         // Update Course Cache
         $cache = new Course();
-        $result = $cache->where('id', $request->course)->update(['cacherev' => time()]);
+        $result = $cache->where('id', $request->courseid)->update(['cacherev' => time()]);
 
     }
 
