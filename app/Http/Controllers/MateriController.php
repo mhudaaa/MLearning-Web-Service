@@ -45,7 +45,7 @@ class MateriController extends Controller{
         // Insert Course URL Data
 	    $courseUrl = new Url();
         $courseUrlData[] = [
-        	'name' => $request->nama,
+        	'name' => $request->title,
         	'externalurl' => $request->url,
         	'display' => 0,
         	'course' => $request->courseid, // ---COURSE ID
