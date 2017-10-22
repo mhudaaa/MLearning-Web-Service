@@ -9,7 +9,9 @@ use App\Model\Course;
 
 class KategoriController extends Controller{
 
-	public function tambahKategori(Request $request){
+    // Add course section
+    // Params : courseId, userId, title
+	public function addCourseSection(Request $request){
 
         // Initialize Kategori
         $kategori = new Kategori();
@@ -17,7 +19,7 @@ class KategoriController extends Controller{
 
         // Insert Kategori Data 
         $kategoriData[] = [
-            'course' => $request->courseid,
+            'course' => $request->courseId,
             'section' => $lastsection,
             'summary' => "",
             'summaryformat' => 1,
@@ -33,26 +35,61 @@ class KategoriController extends Controller{
         $lastRow = $newKategori->orderBy('id', 'desc')->first();
         $lastId = $lastRow['id'];
 
-        // Insert Log
-        $log = new Log();
+        // Create course updated log
+        $this->createLog('\\core\\event\\course_section_created', 'created', $lastId, 'c', $request->courseId, $request->userId, 'a:1:{s:10:"sectionnum";i:'.$lastsection.';}');
 
+        // Update Course Cache
+        $this->updateCourseCache($request->courseId);
+
+    }
+
+    // Edit course section name
+    // Params : courseId, courseSectionId, courseSectionNumber, userId, title
+    public function editCourseSection(Request $request){
+        $courseSection = new Kategori();
+        $courseSection = $courseSection->where('id', $request->courseSectionId)->update(['name' => $request->title]);
+
+        // Create course updated log
+        $this->createLog('\\core\\event\\course_section_updated', 'updated', $request->courseSectionId, 'u', $request->courseId, $request->userId, 'a:1:{s:10:"sectionnum";s:1:"'.$request->courseSectionNumber.'";}');
+
+        // Update Course cache
+        $this->updateCourseCache($request->courseId);
+    }
+
+    // Delete course section name
+    // Params : courseId, courseSectionId, courseSectionNumber, userId, title
+    public function deleteCourseSection(Request $request){
+        $courseSection = Kategori::find($request->courseSectionId);
+        $courseSection->delete();
+
+        // Create course deleted log
+        $this->createLog('\\core\\event\\course_section_deleted', 'deleted', $request->courseSectionId, 'd', $request->courseId, $request->userId, 'a:2:{s:10:"sectionnum";s:1:"'.$request->courseSectionNumber.'";s:11:"sectionname";s:'.strlen($request->title).':"'.$request->title.'";}');
+        
+        // Update course cache
+        $this->updateCourseCache($request->courseId);
+    }
+
+
+    // FUNCTION: CREATE LOG FUNCTION
+    public function createLog($eventname, $action, $objectid, $crud, $userid, $courseid, $other){
+        $log = new Log();
         $logData[] = [
-            'eventname' => '\\core\\event\\course_section_created',
+            'eventname' => $eventname,
             'component' => 'core',
-            'action' => 'created',
+            'action' => $action,
             'target' => 'course_section',
             'objecttable' => 'course_sections',
-            'objectid' => $lastId,
-            'crud' => 'c',
+            'objectid' => $objectid,
+            'crud' => $crud,
             'edulevel' => 1,
             'contextid' => 21,
             'contextlevel' => 50,
-            'contextinstanceid' => 2,
-            'userid' => 2,
-            'courseid' => $request->courseid,
+            'contextinstanceid' => $courseid,
+            'userid' => $userid,
+            'courseid' => $courseid,
             'relateduserid' => NULL,
             'anonymous' => 0,
-            'other' => 'a:1:{s:10:"sectionnum";i:'.$lastsection.';}',
+            'other' => $other,
             'timecreated' => time(),
             'origin' => 'web',
             'ip' => '0:0:0:0:0:0:0:1',
@@ -60,11 +97,11 @@ class KategoriController extends Controller{
         ];
 
         $log->insert($logData);
-
-        // Update Course Cache
-        $cache = new Course();
-        $result = $cache->where('id', $request->courseid)->update(['cacherev' => time()]);
-
     }
 
+    // FUNCTION: UPDATE COURSE CACHE
+    public function updateCourseCache($courseid){
+        $cache = new Course();
+        $result = $cache->where('id', $courseid)->update(['cacherev' => time()]);
+    }
 }

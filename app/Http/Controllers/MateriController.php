@@ -16,10 +16,11 @@ use App\Model\Resource;
 class MateriController extends Controller{
 
 	public function tambahMateri(Request $request){
-		// Insert Course Module Data
+		  
+        // Insert Course Module Data
 	    $courseModule = new CourseModule();
         $courseModuleData[] = [
-            'course' => $request->courseid, // ---COURSE ID
+            'course' => $request->courseid, 
             'module' => 20,
             'instance' => 0,
             'visible' => 1,
@@ -40,7 +41,7 @@ class MateriController extends Controller{
 
         // Update Course Cacherev
 	    $course = new Course();
-        $course->where('id', $request->courseid)->update(['cacherev' => time()]); // ---COURSE ID
+        $course->where('id', $request->courseid)->update(['cacherev' => time()]);
 
         // Insert Course URL Data
 	    $courseUrl = new Url();
@@ -48,7 +49,7 @@ class MateriController extends Controller{
         	'name' => $request->title,
         	'externalurl' => $request->url,
         	'display' => 0,
-        	'course' => $request->courseid, // ---COURSE ID
+        	'course' => $request->courseid,
         	'intro' => $request->deskripsi,
         	'introformat' => 1,
         	'parameters' => 'a:0:{}',
@@ -83,29 +84,29 @@ class MateriController extends Controller{
         // Update Context Path & Depth
         $context->where('id', $contextLastId)->update([
         	'depth' => 4,
-        	'path' => '/1/3/23/'.$contextLastId.'', //--COURSE ID
+        	'path' => '/1/3/23/'.$contextLastId.'',
        	]);
 
        	// Update Course Section Sequence 
 	    $courseSection = Kategori::where('id', $request->sectionid);
-       	$courseSectionRecent = $courseSection->select('sequence')->pluck('sequence')[0]; // ---COURSE SECTION ID
+       	$courseSectionRecent = $courseSection->select('sequence')->pluck('sequence')[0]; 
        	$courseSectionSequence = $courseSectionRecent.",".$courseModuleLastId;
        	$courseSection->update(['sequence' => $courseSectionSequence]); 
 
        	// Update Course Module
-       	$courseModule->where('id', $courseModuleLastId)->update(['section' => $request->sectionid]); // ---COURSE SECTION ID
+       	$courseModule->where('id', $courseModuleLastId)->update(['section' => $request->sectionid]); 
 
        	// Update Course Cacherev
-        $course->where('id', $request->courseid)->update(['cacherev' => time()]); // ---COURSE ID
+        $course->where('id', $request->courseid)->update(['cacherev' => time()]);
 
         // Insert RecentActivity
 		$recentActivity = new RecentActivity();
         $recentActivityData [] = [
         	'action' => 0,
         	'timecreated' => time(),
-        	'courseid' => $request->courseid, // ---COURSE ID
+        	'courseid' => $request->courseid,
         	'cmid' => $courseModuleLastId,
-        	'userid' => $request->userid, // ---USER ID
+        	'userid' => $request->userid,
         ];
         $recentActivity->insert($recentActivityData);
 
@@ -123,7 +124,7 @@ class MateriController extends Controller{
             'contextid' => $contextLastId,
             'contextlevel' => 70,
             'contextinstanceid' => $contextLastId,
-            'userid' => $request->userid, // ---USER ID
+            'userid' => $request->userid,
             'courseid' => $request->courseid,
             'relateduserid' => NULL,
             'anonymous' => 0,
@@ -207,7 +208,7 @@ class MateriController extends Controller{
 
         // Update Course Cacherev
         $course = new Course();
-        $course->where('id', $courseid)->update(['cacherev' => time()]); // ---COURSE ID
+        $course->where('id', $courseid)->update(['cacherev' => time()]);
 
         // Insert mdl resource
         $resource = new Resource();
@@ -260,12 +261,6 @@ class MateriController extends Controller{
         // Insert mdl file
         $file = new Files();
 
-        // get file last id
-        // $fileLastRow = $file->orderBy('id', 'desc')->first();
-        // $fileLastId = $fileLastRow['id'];
-        // $itemid = $fileLastId + 1;
-
-
         $fileData [] = [
            'contenthash' => $contenthash,
            'pathnamehash' => sha1('/'.$contextLastId.'/mod_resource/content/0/'.$_FILES['file']['name']),
@@ -314,19 +309,18 @@ class MateriController extends Controller{
         $file->insert($fileData2);
 
         // Update course module
-        // $courseModule->where('id', $courseModuleLastId)->update(['instance' => $resourceLastId]);
         $courseModuleDoc = $courseModule->where('module', 17);  // 17 = Resource
         $courseModuleMaxInstance = $courseModuleDoc->max('instance');
         $courseModule->where('id', $courseModuleLastId)->update(['instance' => $courseModuleMaxInstance]); 
 
         // Update Course Section Sequence 
         $courseSection = Kategori::where('id', $coursesectionid);
-        $courseSectionRecent = $courseSection->select('sequence')->pluck('sequence')[0]; // ---COURSE SECTION ID
+        $courseSectionRecent = $courseSection->select('sequence')->pluck('sequence')[0];
         $courseSectionSequence = $courseSectionRecent.",".$courseModuleLastId;
         $courseSection->update(['sequence' => $courseSectionSequence]); 
 
         // Update course module
-        $courseModule->where('id', $courseModuleLastId)->update(['section' => $coursesectionid]); // ---COURSE SECTION ID
+        $courseModule->where('id', $courseModuleLastId)->update(['section' => $coursesectionid]);
 
         // Update cacherev
         $course->where('id', $courseid)->update(['cacherev' => time()]);
