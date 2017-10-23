@@ -19,6 +19,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::get('/pengumuman/{matkul}', 'PengumumanController@getPengumuman');
 Route::get('/pengumuman/detail/{id}', 'PengumumanController@getDetailPengumuman');
+Route::get('/pengumuman/delete/{id}', 'PengumumanController@deletePengumuman');
 Route::post('/pengumuman/tambah', 'PengumumanController@tambahPengumuman');
 
 Route::post('/kategori/add', 'KategoriController@addCourseSection');
@@ -27,6 +28,7 @@ Route::post('/kategori/delete', 'KategoriController@deleteCourseSection');
 
 Route::post('/materi/tambah', 'MateriController@tambahMateri');
 Route::post('/materi/tambahDokumen', 'MateriController@tambahDokumen');
+Route::post('/materi/editVideo', 'MateriController@editCourseModuleURL');
 
 // Auth
 Route::post('/user/check', 'AuthController@authCheck');

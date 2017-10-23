@@ -50,7 +50,7 @@ class MateriController extends Controller{
         	'externalurl' => $request->url,
         	'display' => 0,
         	'course' => $request->courseid,
-        	'intro' => $request->deskripsi,
+        	'intro' => $request->description,
         	'introformat' => 1,
         	'parameters' => 'a:0:{}',
         	'displayoptions' => 'a:1:{s:10:"printintro";i:1;}',
@@ -128,7 +128,7 @@ class MateriController extends Controller{
             'courseid' => $request->courseid,
             'relateduserid' => NULL,
             'anonymous' => 0,
-            'other' => 'a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";i:'.$courseModuleMaxInstance.';s:4:"name";s:'.strlen($request->nama).':"'.$request->nama.'";}',
+            'other' => 'a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";i:'.$courseModuleMaxInstance.';s:4:"name";s:'.strlen($request->title).':"'.$request->title.'";}',
             'timecreated' => time(),
             'origin' => 'web',
             'ip' => '0:0:0:0:0:0:0:1',
@@ -362,5 +362,74 @@ class MateriController extends Controller{
           'realuserid' => NULL,
         ];
         $log->insert($logData);
+    }
+
+
+
+    // Edit course section name
+    // Params : courseId, courseModuleId, courseSectionNumber, userId, title
+    public function editCourseModuleURL(Request $request){
+        $url = new Url();
+        $url = $url->where('id', $request->urlId)->update([
+            'name' => $request->title,
+            'intro' => $request->description,
+            'externalurl' => $request->url,
+            'timemodified' => time()
+        ]);
+
+        // // a:3:{s:10:"modulename";s:8:"resource";s:10:"instanceid";s:2:"62";s:4:"name";s:15:"penting bangets";}
+        // // a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";s:1:"1";s:4:"name";s:19:"Upgrade MacOS Sierr";}
+        // // a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";s:1:"1";s:4:"name";s:20:"Upgrade MacOS Sierra";}
+        // // a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";s:2:"74";s:4:"name";s:11:"Video Bagus";}
+        // // a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";s:2:"75";s:4:"name";s:12:"Contoh video";}
+
+        // // alur
+        // // 1. select id from mdl_course_modules where instance = mdl_url id
+        // // 2. select id from mdl_context where instanceid = mdl_course_module id
+
+        // Get contextId
+        $contextid = Context::where('instanceid', $request->courseModuleId)->pluck('id');
+
+        // Create course updated log
+        $this->createLog('\\core\\event\\\core\event\course_module_updated', 'updated', $request->courseModuleId, 'u', $contextid[0], $request->courseId, $request->userId, 'a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";s:'.strlen($request->urlId).':"'.$request->urlId.'";s:4:"name";s:'.strlen($request->title).':"'.$request->title.'";}'
+        );
+
+        // Update Course cache
+        $this->updateCourseCache($request->courseId);
+    }
+
+    // FUNCTION: CREATE LOG FUNCTION
+    public function createLog($eventname, $action, $objectid, $crud, $contextid, $userid, $courseid, $other){
+        $log = new Log();
+        $logData[] = [
+            'eventname' => $eventname,
+            'component' => 'core',
+            'action' => $action,
+            'target' => 'course_module',
+            'objecttable' => 'course_modules',
+            'objectid' => $objectid,
+            'crud' => $crud,
+            'edulevel' => 1,
+            'contextid' => $contextid,
+            'contextlevel' => 70,
+            'contextinstanceid' => $objectid,
+            'userid' => $userid,
+            'courseid' => $courseid,
+            'relateduserid' => NULL,
+            'anonymous' => 0,
+            'other' => $other,
+            'timecreated' => time(),
+            'origin' => 'web',
+            'ip' => '0:0:0:0:0:0:0:1',
+            'realuserid' => NULL
+        ];
+
+        $log->insert($logData);
+    }
+
+    // FUNCTION: UPDATE COURSE CACHE
+    public function updateCourseCache($courseid){
+        $cache = new Course();
+        $result = $cache->where('id', $courseid)->update(['cacherev' => time()]);
     }
 }

@@ -11,6 +11,7 @@ class PengumumanController extends Controller{
 	public function tambahPengumuman(Request $request){
         $pengumuman = new Pengumuman();
         $pengumuman->courseid = $request->courseid;
+        $pengumuman->course = $request->course;
         $pengumuman->title = $request->title;
         $pengumuman->description = $request->description;
         $pengumuman->teacher = $request->teacher;
@@ -21,7 +22,7 @@ class PengumumanController extends Controller{
     public function getPengumuman($matkul){
         $idMatkul = explode("-", $matkul);
         $pengumuman = new Pengumuman();
-    	$pengumuman = $pengumuman::whereIn('courseid', $idMatkul)->get();
+    	$pengumuman = $pengumuman::whereIn('courseid', $idMatkul)->orderBy('tgl_pengumuman', 'desc')->get();
         return response()->json($pengumuman);
     }
 
@@ -29,6 +30,12 @@ class PengumumanController extends Controller{
     public function getDetailPengumuman($id){
         $pengumuman = Pengumuman::where('id_pengumuman', $id)->get();
         return response()->json($pengumuman); 
+    }
+
+    // Delete Pengumuman
+    public function deletePengumuman($id){
+        $pengumuman = Pengumuman::where('id_pengumuman', $id)->first();
+        $pengumuman->delete();
     }
 
 }
