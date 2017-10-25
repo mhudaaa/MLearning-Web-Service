@@ -19,7 +19,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::get('/pengumuman/{matkul}', 'PengumumanController@getPengumuman');
 Route::get('/pengumuman/detail/{id}', 'PengumumanController@getDetailPengumuman');
-Route::get('/pengumuman/delete/{id}', 'PengumumanController@deletePengumuman');
+Route::post('/pengumuman/delete', 'PengumumanController@deletePengumuman');
 Route::post('/pengumuman/tambah', 'PengumumanController@tambahPengumuman');
 
 Route::post('/kategori/add', 'KategoriController@addCourseSection');

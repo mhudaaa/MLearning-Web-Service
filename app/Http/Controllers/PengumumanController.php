@@ -33,9 +33,8 @@ class PengumumanController extends Controller{
     }
 
     // Delete Pengumuman
-    public function deletePengumuman($id){
-        $pengumuman = Pengumuman::where('id_pengumuman', $id)->first();
-        $pengumuman->delete();
+    public function deletePengumuman(Request $request){
+        $pengumuman = Pengumuman::find($request->id_pengumuman)->delete();
     }
 
 }

@@ -161,8 +161,7 @@ class MateriController extends Controller{
             if (move_uploaded_file($temp_name, $target_file)) {
                 $contenthash = sha1_file($target_dir. "/" .$real_name);
                 $firstdir = substr($contenthash, 0, 2);
-                $scnddir = substr($contenthash, 2, 2);
-                echo $contenthash;                
+                $scnddir = substr($contenthash, 2, 2);          
 
                 // Make dir
                 if (!file_exists($filedir . $firstdir)) {
@@ -174,194 +173,194 @@ class MateriController extends Controller{
                 } 
 
                 rename($target_file, $filedir.$firstdir.'/'.$scnddir.'/'.$contenthash);
-                echo "<br>File uploaded";
+
+                // Insert course module
+                $courseModule = new CourseModule();
+                $courseModuleData [] = [
+                   'course' => $courseid,
+                   'module' => '17',
+                   'instance' => '0',
+                   'visible' => '1',
+                   'visibleoncoursepage' => '1',
+                   'visibleold' => '1',
+                   'idnumber' => '',
+                   'groupmode' => '0',
+                   'groupingid' => '0',
+                   'completion' => '1',
+                   'completiongradeitemnumber' => NULL,
+                   'completionview' => '0',
+                   'completionexpected' => '0',
+                   'availability' => NULL,
+                   'showdescription' => '1',
+                   'added' => time(),
+                ];
+                $courseModule->insert($courseModuleData);
+
+                // Update Course Cacherev
+                $course = new Course();
+                $course->where('id', $courseid)->update(['cacherev' => time()]);
+
+                // Insert mdl resource
+                $resource = new Resource();
+                $resourceData [] = [
+                   'name' => $materi,
+                   'display' => '0',
+                   'filterfiles' => '0',
+                   'course' => '2',
+                   'revision' => '1',
+                   'intro' => $deskripsi,
+                   'introformat' => '1',
+                   'timemodified' => time(),
+                   'displayoptions' => 'a:1:{s:10:"printintro";i:1;}'
+                ];
+                $resource->insert($resourceData);
+
+                // Get course module Last Row
+                $courseModuleLastRow = $courseModule->orderBy('id', 'desc')->first();
+                $courseModuleLastId = $courseModuleLastRow['id'];
+
+                // Get resource last row
+                $resourceLastRow = $resource->orderBy('id', 'desc')->first();
+                $resourceLastId = $resourceLastRow['id'];
+
+                // Update course module
+                $courseModule->where('id', $courseModuleLastId)->update(['instance' => $resourceLastId]); 
+
+                // Insert mdl context
+                $context = new Context();
+                $contextData [] = [
+                   'contextlevel' => '70',
+                   'instanceid' => $courseModuleLastId,
+                   'depth' => '0',
+                   'path' => NULL
+                ]; 
+                $context->insert($contextData);
+
+                // Get context last row
+                $contextLastRow = $context->orderBy('id', 'desc')->first();
+                $contextLastId = $contextLastRow['id'];
+
+                // Update mdl context
+                $context->where('id', $contextLastId)->update([
+                   'contextlevel' => '70',
+                   'instanceid' => $courseModuleLastId,
+                   'depth' => '4',
+                   'path'=> '/1/3/21/'.$contextLastId
+                ]); 
+
+                // Insert mdl file
+                $file = new Files();
+
+                $fileData [] = [
+                   'contenthash' => $contenthash,
+                   'pathnamehash' => sha1('/'.$contextLastId.'/mod_resource/content/0/'.$_FILES['file']['name']),
+                   'contextid' => $contextLastId,
+                   'component' => 'mod_resource',
+                   'filearea' => 'content',
+                   'itemid' => 0,
+                   'filepath' => '/',
+                   'filename' => $_FILES['file']['name'],
+                   'userid' => $userid,
+                   'filesize' => $_FILES['file']['size'],
+                   'mimetype' => $_FILES['file']['type'],
+                   'status' => '0',
+                   'source' => $_FILES['file']['name'],
+                   'author' => $author,
+                   'license' => 'allrightsreserved',
+                   'timecreated' => time(),
+                   'timemodified' => time(),
+                   'sortorder' => '1',
+                   'referencefileid' => NULL
+                ];
+                $file->insert($fileData);
+
+                // Insert mdl file again
+                $fileData2 [] = [
+                   'contextid' => $contextLastId,
+                   'component' => 'mod_resource',
+                   'filearea' => 'content',
+                   'itemid' => '0',
+                   'filepath' => '/',
+                   'filename' => '.',
+                   'contenthash' => 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
+                   'filesize' => '0',
+                   'timecreated' => time(),
+                   'timemodified' => time(),
+                   'mimetype' => NULL,
+                   'userid' => $userid,
+                   'pathnamehash' => sha1('/'.$contextLastId.'/mod_resource/content/0/.'),
+                   'status' => '0',
+                   'source' => NULL,
+                   'author' => NULL,
+                   'license' => NULL,
+                   'sortorder' => '0',
+                   'referencefileid' => NULL
+                ];
+                $file->insert($fileData2);
+
+                // Update course module
+                $courseModuleDoc = $courseModule->where('module', 17);  // 17 = Resource
+                $courseModuleMaxInstance = $courseModuleDoc->max('instance');
+                $courseModule->where('id', $courseModuleLastId)->update(['instance' => $courseModuleMaxInstance]); 
+
+                // Update Course Section Sequence 
+                $courseSection = Kategori::where('id', $coursesectionid);
+                $courseSectionRecent = $courseSection->select('sequence')->pluck('sequence')[0];
+                $courseSectionSequence = $courseSectionRecent.",".$courseModuleLastId;
+                $courseSection->update(['sequence' => $courseSectionSequence]); 
+
+                // Update course module
+                $courseModule->where('id', $courseModuleLastId)->update(['section' => $coursesectionid]);
+
+                // Update cacherev
+                $course->where('id', $courseid)->update(['cacherev' => time()]);
+                $course->where('id', $courseid)->update(['cacherev' => time()]);
+
+                // Insert block recent activity
+                $recentActivity = new RecentActivity();
+                $recentActivityData [] = [
+                   'action' => '0',
+                   'timecreated' => time(),
+                   'courseid' => $courseid,
+                   'cmid' => $courseModuleLastId,
+                   'userid' => $userid,
+                ];
+                $recentActivity->insert($recentActivityData);
+
+                // Insert logstore
+                $log = new Log();
+                $logData [] = [
+                  'eventname' => '\\core\\event\\course_module_created',
+                  'component' => 'core',
+                  'action' => 'created',
+                  'target' => 'course_module',
+                  'objecttable' => 'course_modules',
+                  'objectid' => $courseModuleLastId,
+                  'crud' => 'c',
+                  'edulevel' => '1',
+                  'contextid' => $contextLastId,
+                  'contextlevel' => '70',
+                  'contextinstanceid' => $courseModuleLastId,
+                  'userid' => $userid,
+                  'courseid' => $courseid,
+                  'relateduserid' => NULL,
+                  'anonymous' => '0',
+                  'other' => 'a:3:{s:10:"modulename";s:8:"resource";s:10:"instanceid";i:'.$courseModuleMaxInstance.';s:4:"name";s:'.strlen($materi).':"'.$materi.'";}',
+                  'timecreated' => time(),
+                  'origin' => 'web',
+                  'ip' => '0:0:0:0:0:0:0:1',
+                  'realuserid' => NULL,
+                ];
+                $log->insert($logData);
                 
             } else {
                 echo "Sorry, there was an error uploading your file.";
+                return response('Sorry, there was an error uploading your file.', 202)->header('Content-Type', 'text/plain');
             }
 
         } else {
-            echo "Sorry, your file was not uploaded. file extension not allowed";  
+            return response('Sorry, your file was not uploaded. file extension not allowed', 201)->header('Content-Type', 'text/plain');
         }
-
-        // Insert course module
-        $courseModule = new CourseModule();
-        $courseModuleData [] = [
-           'course' => $courseid,
-           'module' => '17',
-           'instance' => '0',
-           'visible' => '1',
-           'visibleoncoursepage' => '1',
-           'visibleold' => '1',
-           'idnumber' => '',
-           'groupmode' => '0',
-           'groupingid' => '0',
-           'completion' => '1',
-           'completiongradeitemnumber' => NULL,
-           'completionview' => '0',
-           'completionexpected' => '0',
-           'availability' => NULL,
-           'showdescription' => '1',
-           'added' => time(),
-        ];
-        $courseModule->insert($courseModuleData);
-
-        // Update Course Cacherev
-        $course = new Course();
-        $course->where('id', $courseid)->update(['cacherev' => time()]);
-
-        // Insert mdl resource
-        $resource = new Resource();
-        $resourceData [] = [
-           'name' => $materi,
-           'display' => '0',
-           'filterfiles' => '0',
-           'course' => '2',
-           'revision' => '1',
-           'intro' => $deskripsi,
-           'introformat' => '1',
-           'timemodified' => time(),
-           'displayoptions' => 'a:1:{s:10:"printintro";i:1;}'
-        ];
-        $resource->insert($resourceData);
-
-        // Get course module Last Row
-        $courseModuleLastRow = $courseModule->orderBy('id', 'desc')->first();
-        $courseModuleLastId = $courseModuleLastRow['id'];
-
-        // Get resource last row
-        $resourceLastRow = $resource->orderBy('id', 'desc')->first();
-        $resourceLastId = $resourceLastRow['id'];
-
-        // Update course module
-        $courseModule->where('id', $courseModuleLastId)->update(['instance' => $resourceLastId]); 
-
-        // Insert mdl context
-        $context = new Context();
-        $contextData [] = [
-           'contextlevel' => '70',
-           'instanceid' => $courseModuleLastId,
-           'depth' => '0',
-           'path' => NULL
-        ]; 
-        $context->insert($contextData);
-
-        // Get context last row
-        $contextLastRow = $context->orderBy('id', 'desc')->first();
-        $contextLastId = $contextLastRow['id'];
-
-        // Update mdl context
-        $context->where('id', $contextLastId)->update([
-           'contextlevel' => '70',
-           'instanceid' => $courseModuleLastId,
-           'depth' => '4',
-           'path'=> '/1/3/21/'.$contextLastId
-        ]); 
-
-        // Insert mdl file
-        $file = new Files();
-
-        $fileData [] = [
-           'contenthash' => $contenthash,
-           'pathnamehash' => sha1('/'.$contextLastId.'/mod_resource/content/0/'.$_FILES['file']['name']),
-           'contextid' => $contextLastId,
-           'component' => 'mod_resource',
-           'filearea' => 'content',
-           'itemid' => 0,
-           'filepath' => '/',
-           'filename' => $_FILES['file']['name'],
-           'userid' => $userid,
-           'filesize' => $_FILES['file']['size'],
-           'mimetype' => $_FILES['file']['type'],
-           'status' => '0',
-           'source' => $_FILES['file']['name'],
-           'author' => $author,
-           'license' => 'allrightsreserved',
-           'timecreated' => time(),
-           'timemodified' => time(),
-           'sortorder' => '1',
-           'referencefileid' => NULL
-        ];
-        $file->insert($fileData);
-
-        // Insert mdl file again
-        $fileData2 [] = [
-           'contextid' => $contextLastId,
-           'component' => 'mod_resource',
-           'filearea' => 'content',
-           'itemid' => '0',
-           'filepath' => '/',
-           'filename' => '.',
-           'contenthash' => 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
-           'filesize' => '0',
-           'timecreated' => time(),
-           'timemodified' => time(),
-           'mimetype' => NULL,
-           'userid' => $userid,
-           'pathnamehash' => sha1('/'.$contextLastId.'/mod_resource/content/0/.'),
-           'status' => '0',
-           'source' => NULL,
-           'author' => NULL,
-           'license' => NULL,
-           'sortorder' => '0',
-           'referencefileid' => NULL
-        ];
-        $file->insert($fileData2);
-
-        // Update course module
-        $courseModuleDoc = $courseModule->where('module', 17);  // 17 = Resource
-        $courseModuleMaxInstance = $courseModuleDoc->max('instance');
-        $courseModule->where('id', $courseModuleLastId)->update(['instance' => $courseModuleMaxInstance]); 
-
-        // Update Course Section Sequence 
-        $courseSection = Kategori::where('id', $coursesectionid);
-        $courseSectionRecent = $courseSection->select('sequence')->pluck('sequence')[0];
-        $courseSectionSequence = $courseSectionRecent.",".$courseModuleLastId;
-        $courseSection->update(['sequence' => $courseSectionSequence]); 
-
-        // Update course module
-        $courseModule->where('id', $courseModuleLastId)->update(['section' => $coursesectionid]);
-
-        // Update cacherev
-        $course->where('id', $courseid)->update(['cacherev' => time()]);
-        $course->where('id', $courseid)->update(['cacherev' => time()]);
-
-        // Insert block recent activity
-        $recentActivity = new RecentActivity();
-        $recentActivityData [] = [
-           'action' => '0',
-           'timecreated' => time(),
-           'courseid' => $courseid,
-           'cmid' => $courseModuleLastId,
-           'userid' => $userid,
-        ];
-        $recentActivity->insert($recentActivityData);
-
-        // Insert logstore
-        $log = new Log();
-        $logData [] = [
-          'eventname' => '\\core\\event\\course_module_created',
-          'component' => 'core',
-          'action' => 'created',
-          'target' => 'course_module',
-          'objecttable' => 'course_modules',
-          'objectid' => $courseModuleLastId,
-          'crud' => 'c',
-          'edulevel' => '1',
-          'contextid' => $contextLastId,
-          'contextlevel' => '70',
-          'contextinstanceid' => $courseModuleLastId,
-          'userid' => $userid,
-          'courseid' => $courseid,
-          'relateduserid' => NULL,
-          'anonymous' => '0',
-          'other' => 'a:3:{s:10:"modulename";s:8:"resource";s:10:"instanceid";i:'.$courseModuleMaxInstance.';s:4:"name";s:'.strlen($materi).':"'.$materi.'";}',
-          'timecreated' => time(),
-          'origin' => 'web',
-          'ip' => '0:0:0:0:0:0:0:1',
-          'realuserid' => NULL,
-        ];
-        $log->insert($logData);
     }
 
 
