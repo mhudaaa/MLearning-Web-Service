@@ -138,7 +138,7 @@ class MateriController extends Controller{
         $log->insert($logData);
 	}
 
-   public function tambahDokumen(){
+    public function tambahDokumen(){
 
         $temp_name = $_FILES['file']['tmp_name'];
         $real_name = $_FILES['file']['name'];
