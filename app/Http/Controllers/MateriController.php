@@ -363,8 +363,6 @@ class MateriController extends Controller{
         }
     }
 
-
-
     // Edit course section name
     // Params : courseId, courseModuleId, courseSectionNumber, userId, title
     public function editCourseModuleURL(Request $request){
@@ -376,16 +374,6 @@ class MateriController extends Controller{
             'timemodified' => time()
         ]);
 
-        // // a:3:{s:10:"modulename";s:8:"resource";s:10:"instanceid";s:2:"62";s:4:"name";s:15:"penting bangets";}
-        // // a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";s:1:"1";s:4:"name";s:19:"Upgrade MacOS Sierr";}
-        // // a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";s:1:"1";s:4:"name";s:20:"Upgrade MacOS Sierra";}
-        // // a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";s:2:"74";s:4:"name";s:11:"Video Bagus";}
-        // // a:3:{s:10:"modulename";s:3:"url";s:10:"instanceid";s:2:"75";s:4:"name";s:12:"Contoh video";}
-
-        // // alur
-        // // 1. select id from mdl_course_modules where instance = mdl_url id
-        // // 2. select id from mdl_context where instanceid = mdl_course_module id
-
         // Get contextId
         $contextid = Context::where('instanceid', $request->courseModuleId)->pluck('id');
 
@@ -394,6 +382,7 @@ class MateriController extends Controller{
         );
 
         // Update Course cache
+        $this->updateCourseCache($request->courseId);
         $this->updateCourseCache($request->courseId);
     }
 

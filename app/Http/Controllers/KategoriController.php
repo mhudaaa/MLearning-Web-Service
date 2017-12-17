@@ -40,33 +40,32 @@ class KategoriController extends Controller{
 
         // Update Course Cache
         $this->updateCourseCache($request->courseId);
-
     }
 
     // Edit course section name
-    // Params : courseId, courseSectionId, courseSectionNumber, userId, title
+    // Params : matkulId, kategoriId, kategoriSection, userId, title
     public function editCourseSection(Request $request){
         $courseSection = new Kategori();
-        $courseSection = $courseSection->where('id', $request->courseSectionId)->update(['name' => $request->title]);
+        $courseSection = $courseSection->where('id', $request->kategoriId)->update(['name' => $request->title]);
 
         // Create course updated log
-        $this->createLog('\\core\\event\\course_section_updated', 'updated', $request->courseSectionId, 'u', $request->courseId, $request->userId, 'a:1:{s:10:"sectionnum";s:1:"'.$request->courseSectionNumber.'";}');
+        $this->createLog('\\core\\event\\course_section_updated', 'updated', $request->kategoriId, 'u', $request->matkulId, $request->userId, 'a:1:{s:10:"sectionnum";s:1:"'.$request->kategoriSection.'";}');
 
         // Update Course cache
-        $this->updateCourseCache($request->courseId);
+        $this->updateCourseCache($request->matkulId);
     }
 
     // Delete course section name
-    // Params : courseId, courseSectionId, courseSectionNumber, userId, title
+    // Params : courseId, kategoriId, kategoriSection, userId, title
     public function deleteCourseSection(Request $request){
-        $courseSection = Kategori::find($request->courseSectionId);
+        $courseSection = Kategori::find($request->kategoriId);
         $courseSection->delete();
 
         // Create course deleted log
-        $this->createLog('\\core\\event\\course_section_deleted', 'deleted', $request->courseSectionId, 'd', $request->courseId, $request->userId, 'a:2:{s:10:"sectionnum";s:1:"'.$request->courseSectionNumber.'";s:11:"sectionname";s:'.strlen($request->title).':"'.$request->title.'";}');
+        $this->createLog('\\core\\event\\course_section_deleted', 'deleted', $request->kategoriId, 'd', $request->matkulId, $request->userId, 'a:2:{s:10:"sectionnum";s:1:"'.$request->kategoriSection.'";s:11:"sectionname";s:'.strlen($request->title).':"'.$request->title.'";}');
         
         // Update course cache
-        $this->updateCourseCache($request->courseId);
+        $this->updateCourseCache($request->matkulId);
     }
 
 

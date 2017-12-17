@@ -29,7 +29,16 @@ class PengumumanController extends Controller{
     // Detail Pengumuman
     public function getDetailPengumuman($id){
         $pengumuman = Pengumuman::where('id_pengumuman', $id)->get();
-        return response()->json($pengumuman); 
+        return response()->json($pengumuman);
+    }
+
+	// Edit PengumumanController
+	public function editPengumuman(Request $request){
+        $pengumuman = new Pengumuman();
+        $pengumuman = $pengumuman->where('id_pengumuman', $request->id_pengumuman)->update([
+			'title' => $request->title,
+			'description' => $request->description
+		]);
     }
 
     // Delete Pengumuman
